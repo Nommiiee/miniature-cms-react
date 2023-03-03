@@ -5,38 +5,53 @@ import { useState } from "react";
 export default function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [popup, setPopup] = useState(false);
+  const [data, setData] = useState({
+    message: "",
+    err: false,
+  });
+
+  const handleUsername = (e) => {
+    setUsername(e.target.value);
+  };
+
+  const handlePassword = (e) => {
+    setPassword(e.target.value);
+  };
 
   const handleSubmit = async (e) => {
-    const URL = "http://localhost:3000/auth/login";
-    const response = fetch(URL, {
+    e.preventDefault();
+    const URL = "http://localhost:3001/auth/login";
+    const response = await fetch(URL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        username: username,
+        username: username.toLowerCase(),
         password: password,
       }),
-    })
-      .then((res) => {
-        return res.json();
-      })
-      .catch((err) => {
-        console.log(err);
-      });
+    });
 
-    if (response.status === 200) {
-      console.log(response);
-      console.log("success");
-    } else {
-      console.log("error");
+    const data = await response.json();
+
+    if (data) {
+      setPopup(true);
+      setData({
+        message: data.message,
+        err: data.err,
+      });
+      setTimeout(() => {
+        setPopup(false);
+      }, 3000);
     }
   };
+
   return (
     <>
       <div className="w-full h-screen bg-blue-200 flex justify-center items-center ">
-        <div className="w-96 h-5/6 max-h-[700px] bg-blue-100 p-4 rounded-md shadow-2xl flex items-center justify-center relative">
-          <Popup />
+        <div className=" w-96 h-5/6 max-h-[700px] bg-blue-100 p-4 rounded-md shadow-2xl flex items-center justify-center relative">
+          {popup && <Popup data={data} />}
           <div className="w-11/12 flex items-center justify-center h-full py-10">
             <div className="w-full h-full flex flex-col items-center justify-between gap-4 ">
               <div className="w-full text-center">
@@ -59,6 +74,8 @@ export default function Login() {
                         type="text"
                         className="py-2 pl-2 pr-10 w-full outline-none    rounded-md shadow-md "
                         name="username"
+                        value={username}
+                        onChange={handleUsername}
                       />
                       <svg
                         className="w-8 h-8 absolute right-1"
@@ -88,6 +105,8 @@ export default function Login() {
                         type="password"
                         className="p-2 w-full outline-none  rounded-md shadow-md "
                         name="password"
+                        value={password}
+                        onChange={handlePassword}
                       />
                     </div>
                   </div>
@@ -109,7 +128,10 @@ export default function Login() {
                     </div>
                   </div>
                   <div className="w-full flex flex-col gap-4 pt-8">
-                    <button className="w-full rounded-md border-2 border-black p-2 text-lg hover:bg-blue-200 ">
+                    <button
+                      onClick={handleSubmit}
+                      className="w-full rounded-md border-2 border-black p-2 text-lg hover:bg-blue-200 "
+                    >
                       Login
                     </button>
                     <button className="w-full rounded-md  p-2 text-lg text-white bg-blue-500 hover:bg-blue-600 font-medium ">
